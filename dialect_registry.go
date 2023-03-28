@@ -34,6 +34,6 @@ func init() {
 	RegisterDatastoreDialect("ndjson", &fileDialect{})
 	RegisterDatastoreDialect("tsv", &fileDialect{})
 	RegisterDatastoreDialect("csv", &fileDialect{})
-	RegisterDatastoreDialect("go_ibm_db", newDb2Dialect())
+	RegisterDatastoreDialect("go_ibm_db", newDb2SQLDialect())
 
 }
