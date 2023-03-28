@@ -15,9 +15,9 @@ func (s *scanner) ColumnTypes() ([]ColumnType, error) {
 }
 
 func (s *scanner) Scan(destinations ...interface{}) error {
-	if len(destinations) == 1 {
+	if len(destinations) == 1 { // 当接受变量是map时
 		if toolbox.IsMap(destinations[0]) {
-			aMap := toolbox.AsMap(destinations[0])
+			aMap := toolbox.AsMap(destinations[0]) // 为什么要再转一次
 			values, columns, err := ScanRow(s)
 			if err != nil {
 				return err
@@ -28,7 +28,7 @@ func (s *scanner) Scan(destinations ...interface{}) error {
 			return nil
 		}
 	}
-	err := s.scanner.Scan(destinations...)
+	err := s.scanner.Scan(destinations...) // 此Scan和当前方法有什么区别？ 调试时直接调用到
 	return err
 }
 

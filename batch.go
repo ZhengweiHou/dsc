@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
@@ -49,7 +50,8 @@ func (b *batch) flush() (int, error) {
 	case BulkInsertAllType:
 		b.sql += " SELECT 1 FROM DUAL"
 	}
-	result, err := b.manager.ExecuteOnConnection(b.connection, b.sql, b.values)
+	log.Println("dsc.manager.ExecuteOnConnection:\n", b.sql)
+	result, err := b.manager.ExecuteOnConnection(b.connection, b.sql, b.values) // 执行insert语句
 	b.dataIndexes = []int{}
 	b.sql = ""
 	b.values = []interface{}{}

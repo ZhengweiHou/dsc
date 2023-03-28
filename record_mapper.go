@@ -293,7 +293,7 @@ func ScanRow(scanner Scanner) ([]interface{}, []string, error) {
 			return rowValues, columns, nil
 		}
 	}
-
+	// 取出value切片的value指针 ?为什么？
 	var valuePointers = make([]interface{}, count)
 	for i := range rowValues {
 		valuePointers[i] = &rowValues[i]
@@ -307,9 +307,9 @@ func ScanRow(scanner Scanner) ([]interface{}, []string, error) {
 	for i := range rowValues {
 		var value interface{}
 		rawValue := rowValues[i]
-		b, ok := rawValue.([]byte)
+		b, ok := rawValue.([]byte) //byte，占用1个节字，就 8 个比特位（2^8 = 256，因此 byte 的表示范围 0->255），所以它和 uint8 类型本质上没有区别，它表示的是 ACSII 表中的一个字符
 		if ok {
-			value = string(b)
+			value = string(b) //string 的本质，其实是一个 byte数组
 		} else {
 			value = rawValue
 		}
