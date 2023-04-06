@@ -51,6 +51,7 @@ ORDER  BY ORDINAL_POSITION`
 
 type db2SQLDialect struct {
 	*sqlDatastoreDialect
+	// DatastoreDialect
 }
 
 func newDb2SQLDialect() *db2SQLDialect {
