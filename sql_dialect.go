@@ -263,6 +263,10 @@ func hasColumns(columns []*sql.ColumnType) bool {
 }
 
 func (d sqlDatastoreDialect) GetColumns(manager Manager, datastore, tableName string) ([]Column, error) {
+	return d.GetColumnsByColumnNames(manager, datastore, tableName, nil)
+}
+
+func (d sqlDatastoreDialect) GetColumnsByColumnNames(manager Manager, datastore, tableName string, columnNames []string) ([]Column, error) {
 	provider := manager.ConnectionProvider()
 	connection, err := provider.Get()
 	if err != nil {
@@ -280,7 +284,12 @@ func (d sqlDatastoreDialect) GetColumns(manager Manager, datastore, tableName st
 		source = tableName
 	}
 
-	var query = "SELECT * FROM " + source + " WHERE 1 = 0"
+	var columnsStr = "*"
+	if len(columnNames) > 0 {
+		columnsStr = strings.Join(columnNames, ", ")
+	}
+
+	var query = "SELECT " + columnsStr + " FROM " + source + " WHERE 1 = 0"
 	rows, err := dbConnection.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("unable to query: %v, %v", query, err)
@@ -315,6 +324,10 @@ func (d sqlDatastoreDialect) GetColumns(manager Manager, datastore, tableName st
 }
 
 func (d oraDialect) GetColumns(manager Manager, datastore, tableName string) ([]Column, error) {
+	return d.GetColumnsByColumnNames(manager, datastore, tableName, nil)
+}
+func (d oraDialect) GetColumnsByColumnNames(manager Manager, datastore, tableName string, columnNames []string) ([]Column, error) {
+
 	provider := manager.ConnectionProvider()
 	connection, err := provider.Get()
 	if err != nil {
@@ -351,7 +364,11 @@ func (d oraDialect) GetColumns(manager Manager, datastore, tableName string) ([]
 		return result, nil
 	}
 
-	var query = "SELECT * FROM " + source + " WHERE 1 = 0"
+	var columnsStr = "*"
+	if len(columnNames) > 0 {
+		columnsStr = strings.Join(columnNames, ", ")
+	}
+	var query = "SELECT " + columnsStr + " FROM " + source + " WHERE 1 = 0"
 	rows, err := dbConnection.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("unable to query: %v, %v", query, err)
@@ -615,7 +632,9 @@ func (d casandraSQLDialect) getCQLVersion(manager Manager) (string, error) {
 	}
 	return "", fmt.Errorf("unable to determine version")
 }
-
+func (d casandraSQLDialect) GetColumnsByColumnNames(manager Manager, datastore, tableName string, columnNames []string) ([]Column, error) {
+	return nil, fmt.Errorf("casandraSQLDialect.GetColumnsByColumnNames is deprecated!") // TODO add by houzw
+}
 func (d casandraSQLDialect) GetColumns(manager Manager, datastore, tableName string) ([]Column, error) {
 	var result = make([]Column, 0)
 	var err error

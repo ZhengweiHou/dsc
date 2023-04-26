@@ -36,6 +36,10 @@ func (d DefaultDialect) GetColumns(manager Manager, datastore, table string) ([]
 	return []Column{}, nil
 }
 
+func (d DefaultDialect) GetColumnsByColumnNames(manager Manager, datastore, tableName string, columnNames []string) ([]Column, error) {
+	return []Column{}, nil
+}
+
 func (d DefaultDialect) CreateDatastore(manager Manager, datastore string) error {
 	return errUnsupportedOperation
 }

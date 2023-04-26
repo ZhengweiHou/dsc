@@ -148,6 +148,8 @@ type DatastoreDialect interface {
 	//GetColumns returns TableColumn info
 	GetColumns(manager Manager, datastore, table string) ([]Column, error)
 
+	GetColumnsByColumnNames(manager Manager, datastore, tableName string, columnNames []string) ([]Column, error)
+
 	//IsAutoincrement returns true if autoicrement
 	IsAutoincrement(manager Manager, datastore, table string) bool
 
