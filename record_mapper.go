@@ -3,6 +3,7 @@ package dsc
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/viant/toolbox"
@@ -257,6 +258,7 @@ func NewRecordMapperIfNeeded(mapper RecordMapper, targetType reflect.Type) Recor
 //ScanRow takes scanner to scans row.
 func ScanRow(scanner Scanner) ([]interface{}, []string, error) {
 	columns, _ := scanner.Columns()
+	columnTypes, _ := scanner.ColumnTypes()
 	count := len(columns)
 
 	var err error
@@ -307,12 +309,23 @@ func ScanRow(scanner Scanner) ([]interface{}, []string, error) {
 	for i := range rowValues {
 		var value interface{}
 		rawValue := rowValues[i]
-		b, ok := rawValue.([]byte) //byte，占用1个节字，就 8 个比特位（2^8 = 256，因此 byte 的表示范围 0->255），所以它和 uint8 类型本质上没有区别，它表示的是 ACSII 表中的一个字符
-		if ok {
-			value = string(b) //string 的本质，其实是一个 byte数组
-		} else {
-			value = rawValue
+		switch columnTypes[i].DatabaseTypeName() {
+		case "DOUBLE", "REAL", "DECIMAL": // TODO 此处针对DB2做的临时修改，其他数据库类型需再测试
+			switch data := rawValue.(type) {
+			case []byte:
+				if value, err = strconv.ParseFloat(string(data), 64); err != nil {
+					return nil, nil, err
+				}
+			}
+		default:
+			b, ok := rawValue.([]byte) //byte，占用1个节字，就 8 个比特位（2^8 = 256，因此 byte 的表示范围 0->255），所以它和 uint8 类型本质上没有区别，它表示的是 ACSII 表中的一个字符
+			if ok {
+				value = string(b) //string 的本质，其实是一个 byte数组
+			} else {
+				value = rawValue
+			}
 		}
+
 		rowValues[i] = value
 	}
 
