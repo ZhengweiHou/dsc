@@ -96,7 +96,9 @@ func (cp *AbstractConnectionProvider) SpawnConnectionIfNeeded() {
 
 		select {
 		case <-time.After(1 * time.Second):
-			log.Fatalf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
+			Logf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
+			// log.Panicf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
+			// log.Fatalf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
 		case connectionPool <- connection:
 		}
 

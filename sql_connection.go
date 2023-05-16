@@ -137,8 +137,11 @@ func (c *sqlConnectionProvider) Get() (Connection, error) {
 }
 
 func newSQLConnectionProvider(config *Config) ConnectionProvider {
+	if config.PoolSize == 0 {
+		config.PoolSize = 1
+	}
 	if config.MaxPoolSize == 0 {
-		config.MaxPoolSize = 1
+		config.MaxPoolSize = config.PoolSize
 	}
 	sqlConnectionProvider := &sqlConnectionProvider{}
 	var connectionProvider ConnectionProvider = sqlConnectionProvider
