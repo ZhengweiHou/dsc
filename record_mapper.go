@@ -316,6 +316,8 @@ func ScanRow(scanner Scanner) ([]interface{}, []string, error) {
 				if value, err = strconv.ParseFloat(string(data), 64); err != nil {
 					return nil, nil, err
 				}
+			case float64:
+				value = data
 			}
 		case "BLOB":
 			switch data := rawValue.(type) {
