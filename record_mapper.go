@@ -324,6 +324,25 @@ func ScanRow(scanner Scanner) ([]interface{}, []string, error) {
 			case []byte:
 				value = data // BLOB字段不做处理TODO
 			}
+		case "CHAR", "VARCHAR", "CLOB":
+			b, ok := rawValue.([]byte)
+			if ok {
+				value = string(b)
+			} else {
+				value = rawValue
+			}
+			// value = rawValue
+			// b, ok := rawValue.([]byte)
+			// if ok {
+
+			// 	srcDecoder := mahonia.NewDecoder("gbk")
+
+			// 	value = srcDecoder.ConvertString(string(b))
+			// 	// value = string(b)
+			// 	// fmt.Printf("len:%v，value:%v\n"，len(b),value)
+			// } else {
+			// 	value = rawValue
+			// }
 		default:
 			b, ok := rawValue.([]byte) //byte，占用1个节字，就 8 个比特位（2^8 = 256，因此 byte 的表示范围 0->255），所以它和 uint8 类型本质上没有区别，它表示的是 ACSII 表中的一个字符
 			if ok {
