@@ -3,9 +3,10 @@ package dsc
 import (
 	"database/sql"
 	"fmt"
-	"github.com/pkg/errors"
 	"reflect"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 func asSQLDb(wrapped interface{}) (*sql.DB, error) {
@@ -137,10 +138,11 @@ func (m *sqlManager) ReadAllOnWithHandlerOnConnection(connection Connection, que
 
 	defer rows.Close()
 
+	scanner, _ := asScanner(rows)
+	newScanner := NewScanner(scanner)
 	for rows.Next() {
-		scanner, _ := asScanner(rows)
 
-		toContinue, err := readingHandler(NewScanner(scanner))
+		toContinue, err := readingHandler(newScanner)
 		if err != nil {
 			return err
 		}

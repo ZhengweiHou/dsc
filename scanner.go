@@ -1,17 +1,50 @@
 package dsc
 
-import "github.com/viant/toolbox"
+import (
+	"github.com/viant/toolbox"
+)
 
 type scanner struct {
-	scanner Scanner
+	scanner             Scanner
+	columns             []string
+	columnTypes         []ColumnType
+	columnsInitFlag     chan bool
+	columnTypesInitFlag chan bool
 }
 
 func (s *scanner) Columns() ([]string, error) {
-	return s.scanner.Columns()
+	if s.columns == nil {
+		_, ok := <-s.columnsInitFlag // 并发控制
+		if ok {
+			columns, err := s.scanner.Columns()
+			if err != nil {
+				return nil, err
+			}
+			s.columns = columns
+			close(s.columnsInitFlag) // 通知其他进程
+		} else { // 被唤醒
+			return s.Columns()
+		}
+	}
+	return s.columns, nil
 }
 
 func (s *scanner) ColumnTypes() ([]ColumnType, error) {
-	return s.scanner.ColumnTypes()
+	if s.columnTypes == nil {
+		_, ok := <-s.columnTypesInitFlag
+		if ok {
+			columnTypes, err := s.scanner.ColumnTypes()
+			if err != nil {
+				return nil, err
+			}
+			s.columnTypes = columnTypes
+			close(s.columnTypesInitFlag)
+		} else {
+			return s.ColumnTypes()
+		}
+	}
+
+	return s.columnTypes, nil
 }
 
 func (s *scanner) Scan(destinations ...interface{}) error {
@@ -33,5 +66,14 @@ func (s *scanner) Scan(destinations ...interface{}) error {
 }
 
 func NewScanner(s Scanner) Scanner {
-	return &scanner{s}
+	columnsInitFlag := make(chan bool, 1)
+	columnTypesInitFlag := make(chan bool, 1)
+	columnsInitFlag <- true
+	columnTypesInitFlag <- true
+
+	return &scanner{
+		scanner:             s,
+		columnsInitFlag:     columnsInitFlag,
+		columnTypesInitFlag: columnTypesInitFlag,
+	}
 }
