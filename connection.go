@@ -1,6 +1,7 @@
 package dsc
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -35,11 +36,11 @@ func (ac *AbstractConnection) SetLastUsed(ts *time.Time) {
 
 //Close closes connection if pool is full or send it back to the pool
 func (ac *AbstractConnection) Close() error {
-	channel := ac.Connection.ConnectionPool()
+	connectionPool := ac.Connection.ConnectionPool()
 	config := ac.config
-	if len(ac.Connection.ConnectionPool()) < config.MaxPoolSize {
+	if len(connectionPool) < config.MaxPoolSize {
 		var connection = ac.Connection
-		channel <- connection
+		connectionPool <- connection // 连接放回连接池
 		var ts = time.Now()
 		connection.SetLastUsed(&ts)
 
@@ -96,6 +97,7 @@ func (cp *AbstractConnectionProvider) SpawnConnectionIfNeeded() {
 
 		select {
 		case <-time.After(1 * time.Second):
+			fmt.Printf("failed to add connection to queue (size: %v, cap:%v)\n", len(connectionPool), cap(connectionPool))
 			Logf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
 			// log.Panicf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
 			// log.Fatalf("failed to add connection to queue (size: %v, cap:%v)", len(connectionPool), cap(connectionPool))
@@ -107,11 +109,11 @@ func (cp *AbstractConnectionProvider) SpawnConnectionIfNeeded() {
 
 //Close closes a datastore connection or returns it to the pool (Config.PoolSize and Config.MaxPoolSize).
 func (cp *AbstractConnectionProvider) Close() error {
-	for i := 0; i < len(cp.connectionPool); i++ {
-		var connection Connection
+	poolsize := len(cp.connectionPool)
+	for i := 0; i < poolsize; i++ {
 		select {
 		case <-time.After(1 * time.Second):
-		case connection = <-cp.connectionPool:
+		case connection := <-cp.connectionPool:
 			err := connection.CloseNow()
 			if err != nil {
 				return err
@@ -119,6 +121,12 @@ func (cp *AbstractConnectionProvider) Close() error {
 		}
 	}
 
+	// 防止池子中再回收进新连接
+	if len(cp.connectionPool) > 0 {
+		cp.Close()
+	}
+
+	// close(cp.connectionPool)
 	return nil
 }
 
@@ -131,6 +139,7 @@ func (cp *AbstractConnectionProvider) Get() (Connection, error) {
 	select {
 	case <-time.After(100 * time.Millisecond):
 		{
+			fmt.Println("unable to acquire connection from pool, creating new connection ...")
 			Logf("unable to acquire connection from pool, creating new connection ...")
 		}
 	case result = <-connectionPool:
@@ -142,6 +151,12 @@ func (cp *AbstractConnectionProvider) Get() (Connection, error) {
 			return nil, err
 		}
 	}
+
+	// result, err := cp.ConnectionProvider.NewConnection()
+	// if err != nil {
+	// 	return nil, err
+	// }
+
 	return result, nil
 }
 
