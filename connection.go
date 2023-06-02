@@ -40,7 +40,13 @@ func (ac *AbstractConnection) Close() error {
 	config := ac.config
 	if len(connectionPool) < config.MaxPoolSize {
 		var connection = ac.Connection
-		connectionPool <- connection // 连接放回连接池
+
+		select {
+		case connectionPool <- connection: // 连接放回连接池,此处可能会被阻塞
+		case <-time.After(time.Millisecond * 50):
+			return connection.CloseNow()
+		}
+
 		var ts = time.Now()
 		connection.SetLastUsed(&ts)
 
