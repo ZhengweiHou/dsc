@@ -1,8 +1,0 @@
-{
-  "DriverName": "ndjson",
-  "Descriptor": "[url]",
-  "Parameters": {
-    "url": "test:///test/",
-    "dateFormat": "yyyy-MM-dd hh:mm:ss"
-  }
-}

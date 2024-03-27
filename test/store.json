@@ -1,7 +1,0 @@
-{
-  "DriverName": "sqlite3",
-  "Descriptor": "[url]",
-  "Parameters": {
-    "url": "./test/foo.db"
-  }
-}
